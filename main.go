@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type Response struct {
@@ -11,19 +13,15 @@ type Response struct {
 }
 
 func main() {
-	http.HandleFunc("/api", handleAPIRequest)
-	http.HandleFunc("/test",testHandle)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	r := mux.NewRouter()
+	r.HandleFunc("/user/{name}", handleUserRequest)
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
-// ok
 
-func handleAPIRequest(w http.ResponseWriter, r *http.Request) {
-	response := Response{Message: "Hello, World!"}
+func handleUserRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["name"]
+	response := Response{Message: "Hello, " + name + "!"}
 	json.NewEncoder(w).Encode(response)
 }
 
-func testHandle(w http.ResponseWriter, r *http.Request){
-	message := "Ok"
-	response := Response{Message: message}
-	json.NewEncoder(w).Encode(response)
-}
