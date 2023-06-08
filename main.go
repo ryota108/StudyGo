@@ -1,53 +1,49 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
-	ID string `json:"id"`
+	ID    string `json:"id"`
 	Title string `json:"title"`
 }
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/user/{id}", handleUserRequest)
-	r.HandleFunc("/restaurants/{id}", restaurantHandle)
-	log.Fatal(http.ListenAndServe(":8080", r))
+	r := gin.Default()
+	r.GET("/user/:id", handleUserRequest)
+	r.GET("/restaurants/:id", restaurantHandle)
+	r.Run(":8080")
 }
 
-func handleUserRequest(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
+func handleUserRequest(c *gin.Context) {
+	id := c.Param("id")
 	num, err := strconv.Atoi(id)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
-	// 配列のインデックスとして使用する
 	dummyArray := []string{"Ryota", "Aya", "Sora"}
 	dummyArray = append(dummyArray, "Tanaka")
 	if num < 0 || num >= len(dummyArray) {
-		http.Error(w, "ID not found", http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{"error": "ID not found"})
 		return
 	}
+
 	response := Response{ID: dummyArray[num]}
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func restaurantHandle(w http.ResponseWriter, r *http.Request) {
-	m := make(map[string]string)
-	//dummy data
-	m["J003451133"] = "仙台ホルモン焼肉酒場 ときわ亭 高田馬場店"
-	m["J001038613"] = "大衆酒場 ちばチャン 高田馬場店"
-	vars := mux.Vars(r)
-	id := vars["id"]
-	response := Response{ID:id,Title: m[id]}
-	json.NewEncoder(w).Encode(response)
+func restaurantHandle(c *gin.Context) {
+	m := map[string]string{
+		"J003451133": "仙台ホルモン焼肉酒場 ときわ亭 高田馬場店",
+		"J001038613": "大衆酒場 ちばチャン 高田馬場店",
+	}
+	id := c.Param("id")
+	response := Response{ID: id, Title: m[id]}
+	c.JSON(http.StatusOK, response)
 }
