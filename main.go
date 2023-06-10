@@ -12,10 +12,17 @@ type Response struct {
 	Title string `json:"title"`
 }
 
+var m = map[string]string{
+	"original1": "東京麺珍亭本舗",
+	"original2": "モンスターズキッチン",
+}
+
 func main() {
 	r := gin.Default()
 	r.GET("/user/:id", handleUserRequest)
 	r.GET("/restaurants/:id", restaurantHandle)
+	r.GET("/restaurants", handleAllRestaurants)
+	r.POST("/restaurants", addRestaurant)
 	r.Run(":8080")
 }
 
@@ -39,11 +46,25 @@ func handleUserRequest(c *gin.Context) {
 }
 
 func restaurantHandle(c *gin.Context) {
-	m := map[string]string{
-		"original1": "東京麺珍亭本舗",
-		"original2": "モンスターズキッチン",
-	}
 	id := c.Param("id")
 	response := Response{ID: id, Title: m[id]}
 	c.JSON(http.StatusOK, response)
+}
+
+func handleAllRestaurants(c *gin.Context) {
+	restaurants := make([]Response, 0, len(m))
+	for id, title := range m {
+		restaurants = append(restaurants, Response{ID: id, Title: title})
+	}
+	c.JSON(http.StatusOK, restaurants)
+}
+
+func addRestaurant(c *gin.Context) {
+	var requestBody Response
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	m[requestBody.ID] = requestBody.Title
+	c.JSON(http.StatusCreated, gin.H{"message": "Restaurant added successfully"})
 }
