@@ -40,8 +40,8 @@ func handleUserRequest(c *gin.Context) {
 
 func restaurantHandle(c *gin.Context) {
 	m := map[string]string{
-		"J003451133": "仙台ホルモン焼肉酒場 ときわ亭 高田馬場店",
-		"J001038613": "大衆酒場 ちばチャン 高田馬場店",
+		"original1": "東京麺珍亭本舗",
+		"original2": "モンスターズキッチン",
 	}
 	id := c.Param("id")
 	response := Response{ID: id, Title: m[id]}
